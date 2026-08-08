@@ -20,7 +20,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Train model with MLflow
+      - name: Train model
         run: |
           python src/train.py
 
@@ -28,14 +28,24 @@ jobs:
         run: |
           pytest -v
 
-      - name: Upload MLflow runs
-        uses: actions/upload-artifact@v4
-        with:
-          name: mlflow-runs
-          path: mlruns/
+      - name: Build Docker image
+        run: |
+          docker build -t salary-prediction:latest .
 
-      - name: Upload trained model
-        uses: actions/upload-artifact@v4
-        with:
-          name: trained-model
-          path: models/model.pkl
+      - name: Run Docker container
+        run: |
+          docker run -d \
+            --name salary-api \
+            -p 8000:8000 \
+            salary-prediction:latest
+
+      - name: Test API
+        run: |
+          sleep 5
+          curl --fail http://localhost:8000/
+
+      - name: Stop Docker container
+        if: always()
+        run: |
+          docker stop salary-api || true
+          docker rm salary-api || true
