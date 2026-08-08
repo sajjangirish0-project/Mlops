@@ -44,8 +44,21 @@ jobs:
           sleep 5
           curl --fail http://localhost:8000/
 
-      - name: Stop Docker container
-        if: always()
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push Docker image to GHCR
         run: |
-          docker stop salary-api || true
-          docker rm salary-api || true
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/salary-prediction:latest
+          docker tag salary-prediction:latest $IMAGE_NAME
+          docker push $IMAGE_NAME
+
+    #   - name: Stop Docker container
+    #     if: always()
+    #     run: |
+    #       docker stop salary-api || true
+    #       docker rm salary-api || true
