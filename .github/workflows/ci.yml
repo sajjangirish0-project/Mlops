@@ -1,6 +1,9 @@
 name: MLOps CI
 
 on: [push]
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   mlops-ci:
